@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>PicToPDF</title>
+  <meta name="description" content="הופכים תמונות לקובץ PDF בקלות – מהגלריה או מהמצלמה">
+  <meta name="theme-color" content="#f6f7fb" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0f1115" media="(prefers-color-scheme: dark)">
+
+  <!-- iOS -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="PicToPDF">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <img src="icons/icon.svg" alt="" class="brand-icon">
+        <h1>PicToPDF</h1>
+      </div>
+      <button id="clearBtn" class="ghost-btn" hidden>נקה הכל</button>
+    </header>
+
+    <main>
+      <!-- Empty state -->
+      <section id="empty" class="empty">
+        <div class="empty-art" aria-hidden="true">
+          <svg viewBox="0 0 120 120" fill="none">
+            <rect x="22" y="14" width="64" height="84" rx="10" class="art-back"/>
+            <rect x="34" y="24" width="64" height="84" rx="10" class="art-front"/>
+            <circle cx="56" cy="50" r="7" class="art-accent"/>
+            <path d="M42 92l16-18 10 11 8-8 14 15H42z" class="art-accent"/>
+          </svg>
+        </div>
+        <h2>מתמונות ל-PDF בשניות</h2>
+        <p>בחרו תמונות מהגלריה או צלמו עכשיו – נסדר אותן לקובץ PDF אחד ונקי.</p>
+      </section>
+
+      <!-- Image grid -->
+      <section id="gridWrap" class="grid-wrap" hidden>
+        <div class="grid-head">
+          <span id="count" class="count"></span>
+          <span class="hint">גררו כדי לשנות סדר</span>
+        </div>
+        <ul id="grid" class="grid"></ul>
+      </section>
+
+      <!-- Add buttons -->
+      <section class="add-row">
+        <label class="add-btn">
+          <input id="galleryInput" type="file" accept="image/*" multiple hidden>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-9 9"/></svg>
+          <span>גלריה</span>
+        </label>
+        <label class="add-btn">
+          <input id="cameraInput" type="file" accept="image/*" capture="environment" hidden>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3a1 1 0 011 1v10a1 1 0 01-1 1H4a1 1 0 01-1-1V9a1 1 0 011-1z"/><circle cx="12" cy="13" r="4"/></svg>
+          <span>מצלמה</span>
+        </label>
+      </section>
+
+      <!-- Settings -->
+      <section id="settings" class="card settings" hidden>
+        <div class="field">
+          <label for="fileName">שם הקובץ</label>
+          <div class="name-input">
+            <input id="fileName" type="text" inputmode="text" autocomplete="off" spellcheck="false">
+            <span class="ext">.pdf</span>
+          </div>
+        </div>
+
+        <div class="field">
+          <span class="label">גודל עמוד</span>
+          <div class="segmented" data-setting="pageSize">
+            <button data-value="a4" class="active">A4</button>
+            <button data-value="letter">Letter</button>
+            <button data-value="fit">לפי התמונה</button>
+          </div>
+        </div>
+
+        <div class="field" id="orientationField">
+          <span class="label">כיוון</span>
+          <div class="segmented" data-setting="orientation">
+            <button data-value="auto" class="active">אוטומטי</button>
+            <button data-value="portrait">לאורך</button>
+            <button data-value="landscape">לרוחב</button>
+          </div>
+        </div>
+
+        <div class="field">
+          <span class="label">שוליים</span>
+          <div class="segmented" data-setting="margin">
+            <button data-value="0">ללא</button>
+            <button data-value="small" class="active">קטנים</button>
+            <button data-value="large">גדולים</button>
+          </div>
+        </div>
+
+        <div class="field">
+          <span class="label">איכות</span>
+          <div class="segmented" data-setting="quality">
+            <button data-value="high">גבוהה</button>
+            <button data-value="medium" class="active">רגילה</button>
+            <button data-value="low">קובץ קטן</button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer id="actionBar" class="action-bar" hidden>
+      <button id="createBtn" class="primary-btn">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V8z"/><path d="M14 3v5h5M12 12v6M9 15l3 3 3-3"/></svg>
+        <span>צור PDF</span>
+      </button>
+    </footer>
+  </div>
+
+  <!-- Preview / edit sheet -->
+  <div id="viewer" class="viewer" hidden>
+    <div class="viewer-top">
+      <button id="viewerClose" class="icon-btn" aria-label="סגור">
+        <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+      <span id="viewerTitle"></span>
+      <span class="spacer"></span>
+    </div>
+    <div class="viewer-body"><img id="viewerImg" alt=""></div>
+    <div class="viewer-tools">
+      <button id="rotateBtn" class="tool-btn">
+        <svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 11-2.34-5.66M20 4v5h-5"/></svg>
+        <span>סובב</span>
+      </button>
+      <button id="deleteBtn" class="tool-btn danger">
+        <svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>
+        <span>מחק</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Result sheet -->
+  <div id="result" class="sheet-backdrop" hidden>
+    <div class="sheet">
+      <div class="sheet-handle"></div>
+      <div class="success-mark">
+        <svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
+      </div>
+      <h3>ה-PDF מוכן!</h3>
+      <p class="file-meta"><span id="resultName" class="file-name" dir="ltr"></span><span id="resultInfo"></span></p>
+      <div class="sheet-actions">
+        <button id="shareBtn" class="primary-btn" hidden>
+          <svg viewBox="0 0 24 24"><path d="M12 3v12M7 8l5-5 5 5M5 13v6a2 2 0 002 2h10a2 2 0 002-2v-6"/></svg>
+          <span>שיתוף / שמירה</span>
+        </button>
+        <a id="downloadLink" class="secondary-btn" download>
+          <svg viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>
+          <span>הורדה</span>
+        </a>
+        <a id="openLink" class="text-btn" target="_blank" rel="noopener">תצוגה מקדימה</a>
+      </div>
+      <button id="resultClose" class="text-btn">סגור</button>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div id="loading" class="loading" hidden>
+    <div class="spinner"></div>
+    <p id="loadingText">מכין את הקובץ…</p>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="vendor/jspdf.umd.min.js"></script>
+  <script src="vendor/Sortable.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
